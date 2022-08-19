@@ -34,6 +34,19 @@ func (u UseCaseTransaction) ProcessTransaction(transactionDTO dto.Transaction) (
 		return domain.Transaction{}, err
 	}
 
+	transactionDTO.ID = t.ID
+	transactionDTO.CreatedAt = t.CreatedAt
+
+	transactionJson, err := json.Marshal(transactionDTO)
+	if err != nil {
+		return domain.Transaction{}, err
+	}
+
+	err = u.KafkaProducer.Publish(string(transactionJson), "payments")
+	if err != nil {
+		return domain.Transaction{}, err
+	}
+
 	return *t, nil
 }
 
